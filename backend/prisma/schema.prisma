@@ -1,0 +1,39 @@
+// Prisma schema for the IRCTC-style booking system.
+// Auth-related model lives here now; train/seat/booking models get added in Section 1's
+// remaining scope. Swapping to Postgres later is a one-line change: set provider = "postgresql"
+// and point DATABASE_URL at your Postgres instance — the rest of this schema doesn't change.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(USER)
+  refreshTokens RefreshToken[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+}
+
+enum Role {
+  USER
+  ADMIN
+}
